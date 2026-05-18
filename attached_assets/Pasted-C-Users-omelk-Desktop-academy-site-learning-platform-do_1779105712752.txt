@@ -1,0 +1,193 @@
+C:\Users\omelk\Desktop\academy-site\learning-platform>docker-compose up --build
+[+] Building 425.0s (64/67)                                                                                                
+ => [internal] load local bake definitions                                                                            0.0s
+ => => reading from stdin 3.60kB                                                                                      0.0s
+ => [learning-frontend internal] load build definition from Dockerfile                                                0.1s
+ => => transferring dockerfile: 800B                                                                                  0.0s
+ => [user-service internal] load build definition from Dockerfile                                                     0.1s
+ => => transferring dockerfile: 353B                                                                                  0.0s
+ => [analytics-service internal] load build definition from Dockerfile                                                0.1s
+ => => transferring dockerfile: 350B                                                                                  0.0s
+ => [nginx-gateway internal] load build definition from Dockerfile                                                    0.1s
+ => => transferring dockerfile: 160B                                                                                  0.0s
+ => [ai-tutor-service internal] load build definition from Dockerfile                                                 0.2s
+ => => transferring dockerfile: 350B                                                                                  0.0s
+ => [course-service internal] load build definition from Dockerfile                                                   0.1s
+ => => transferring dockerfile: 362B                                                                                  0.0s
+ => [user-service internal] load metadata for docker.io/library/node:22-alpine                                        1.8s
+ => [nginx-gateway internal] load metadata for docker.io/library/nginx:1.25-alpine                                    1.7s
+ => [course-service internal] load metadata for docker.io/library/python:3.12-slim                                    1.7s
+ => [auth] library/nginx:pull token for registry-1.docker.io                                                          0.0s
+ => [auth] library/node:pull token for registry-1.docker.io                                                           0.0s
+ => [auth] library/python:pull token for registry-1.docker.io                                                         0.0s
+ => [user-service internal] load .dockerignore                                                                        0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [learning-frontend internal] load .dockerignore                                                                   0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [nginx-gateway internal] load .dockerignore                                                                       0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [analytics-service internal] load .dockerignore                                                                   0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [ai-tutor-service internal] load .dockerignore                                                                    0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [course-service internal] load .dockerignore                                                                      0.1s
+ => => transferring context: 2B                                                                                       0.0s
+ => [user-service deps 1/4] FROM docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4  0.1s
+ => => resolve docker.io/library/node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966  0.0s
+ => [learning-frontend internal] load build context                                                                   0.1s
+ => => transferring context: 3.51kB                                                                                   0.0s
+ => [nginx-gateway internal] load build context                                                                       0.0s
+ => => transferring context: 32B                                                                                      0.0s
+ => [nginx-gateway 1/2] FROM docker.io/library/nginx:1.25-alpine@sha256:516475cc129da42866742567714ddc681e5eed7b9ee0  0.1s
+ => => resolve docker.io/library/nginx:1.25-alpine@sha256:516475cc129da42866742567714ddc681e5eed7b9ee0b9e9c015e464b4  0.1s
+ => [user-service internal] load build context                                                                        0.1s
+ => => transferring context: 550B                                                                                     0.0s
+ => [course-service 1/6] FROM docker.io/library/python:3.12-slim@sha256:401f6e1a67dad31a1bd78e9ad22d0ee0a3b52154e6bd  0.1s
+ => => resolve docker.io/library/python:3.12-slim@sha256:401f6e1a67dad31a1bd78e9ad22d0ee0a3b52154e6bd30e90be696bb6a3  0.1s
+ => [analytics-service internal] load build context                                                                   0.0s
+ => => transferring context: 892B                                                                                     0.0s
+ => CACHED [user-service deps 2/4] WORKDIR /app                                                                       0.0s
+ => CACHED [learning-frontend runner 3/6] RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nex  0.0s
+ => [ai-tutor-service internal] load build context                                                                    0.1s
+ => => transferring context: 792B                                                                                     0.0s
+ => [course-service internal] load build context                                                                      0.1s
+ => => transferring context: 984B                                                                                     0.0s
+ => CACHED [nginx-gateway 2/2] COPY nginx.conf /etc/nginx/conf.d/default.conf                                         0.0s
+ => CACHED [user-service builder 3/7] COPY package*.json ./                                                           0.0s
+ => [nginx-gateway] exporting to image                                                                                0.3s
+ => => exporting layers                                                                                               0.0s
+ => => exporting manifest sha256:02b70512bc5798e8017371191165f1eb51bf75f42b1306a47cfe1183b105475c                     0.0s
+ => => exporting config sha256:1537101e7446739d73212b8e7d2adeb952f4518f19a6438b514ca4129acbeb21                       0.0s
+ => => exporting attestation manifest sha256:847b8d588b028ce0967e030aa9ec586f2c4baf5195da1ec7b9b895411e37b0e1         0.1s
+ => => exporting manifest list sha256:eb940668f58f5e443a694e6e2494ec73ceaf494ec8cbc35fdb242f7a9204b401                0.0s
+ => => naming to docker.io/library/learning-platform-nginx-gateway:latest                                             0.0s
+ => => unpacking to docker.io/library/learning-platform-nginx-gateway:latest                                          0.0s
+ => [learning-frontend deps 3/4] COPY package*.json ./                                                                0.2s
+ => CACHED [analytics-service 2/6] WORKDIR /app                                                                       0.0s
+ => CACHED [analytics-service 3/6] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /  0.0s
+ => CACHED [course-service 4/6] COPY requirements.txt .                                                               0.0s
+ => CACHED [ai-tutor-service 4/6] COPY requirements.txt .                                                             0.0s
+ => [user-service stage-1 4/5] RUN npm install --omit=dev                                                            56.0s
+ => CACHED [analytics-service 4/6] COPY requirements.txt .                                                            0.0s
+ => [user-service builder 4/7] RUN npm install                                                                       79.8s
+ => [analytics-service 5/6] RUN pip install --no-cache-dir -r requirements.txt                                      282.7s
+ => [ai-tutor-service 5/6] RUN pip install --no-cache-dir -r requirements.txt                                       265.7s
+ => [course-service 5/6] RUN pip install --no-cache-dir -r requirements.txt                                         359.8s
+ => [learning-frontend deps 4/4] RUN npm install --legacy-peer-deps                                                 349.3s
+ => [nginx-gateway] resolving provenance for metadata file                                                            0.1s
+ => [user-service builder 5/7] COPY tsconfig.json ./                                                                  0.3s
+ => [user-service builder 6/7] COPY src ./src                                                                         0.3s
+ => [user-service builder 7/7] RUN npm run build                                                                     10.0s
+ => [user-service stage-1 5/5] COPY --from=builder /app/dist ./dist                                                   0.2s
+ => [user-service] exporting to image                                                                                 9.5s
+ => => exporting layers                                                                                               4.6s
+ => => exporting manifest sha256:cd7110d7589c9f2a7fa4eea7f0b95e23c1fc7322a21ca5b7519b9183b5efb7de                     0.0s
+ => => exporting config sha256:4f312625c7147ad67fc98fac712e65ec9fad09e59bf6156fd285f97fba347cb0                       0.0s
+ => => exporting attestation manifest sha256:7d6bf533a229ea31dd0cb4c1ddeb906d38de72e253928aca70e5958c29fd4c46         0.0s
+ => => exporting manifest list sha256:fea7a3327c746e62e8e61cb4d9db94c04dc0de934ef256c2de969b4aaf8d9099                0.0s
+ => => naming to docker.io/library/learning-platform-user-service:latest                                              0.0s
+ => => unpacking to docker.io/library/learning-platform-user-service:latest                                           4.7s
+ => [user-service] resolving provenance for metadata file                                                             0.1s
+ => [ai-tutor-service 6/6] COPY . .                                                                                   0.2s
+ => [ai-tutor-service] exporting to image                                                                            11.7s
+ => => exporting layers                                                                                               8.3s
+ => => exporting manifest sha256:35bc12516e77c688f6c84147cc594ba419c18e809a9662666aa7a3de75e0175a                     0.0s
+ => => exporting config sha256:eb31232d49cf35008a99d479934c77baf59ec51d0cea9d5e78a519a65a3eecab                       0.0s
+ => => exporting attestation manifest sha256:88c4b92e05f6f86a7ba38f577a541f2ac24f3c990710fece58d361f0ba026e7c         0.0s
+ => => exporting manifest list sha256:0d306016a894d092307ad85dd1cb187f8887e045796ceb8a7a4eb0d3f205040b                0.0s
+ => => naming to docker.io/library/learning-platform-ai-tutor-service:latest                                          0.0s
+ => => unpacking to docker.io/library/learning-platform-ai-tutor-service:latest                                       3.2s
+ => [ai-tutor-service] resolving provenance for metadata file                                                         0.0s
+ => [analytics-service 6/6] COPY . .                                                                                  0.1s
+ => [analytics-service] exporting to image                                                                            9.7s
+ => => exporting layers                                                                                               7.3s
+ => => exporting manifest sha256:d97c1727dea251b9228fa12673df09d4b10b27f3d1877919f088395cf52d3a9c                     0.0s
+ => => exporting config sha256:acc02a0f30de2b71aef0e7fc3f81115b63420072dff9163d415006f2f5bb7b26                       0.0s
+ => => exporting attestation manifest sha256:1f884df3ebb66a663dce718f24d46a2959ff3c9a4ff3d16e0c30cde8dfac620d         0.0s
+ => => exporting manifest list sha256:019079bec8e20d958a41fcd83bc9b2887c7ed94f20de1319abcdc69246601814                0.0s
+ => => naming to docker.io/library/learning-platform-analytics-service:latest                                         0.0s
+ => => unpacking to docker.io/library/learning-platform-analytics-service:latest                                      2.2s
+ => [analytics-service] resolving provenance for metadata file                                                        0.1s
+ => [course-service 6/6] COPY . .                                                                                     0.3s
+ => [course-service] exporting to image                                                                              36.6s
+ => => exporting layers                                                                                              18.0s
+ => => exporting manifest sha256:f42aff8ab1b970dfa7986088d32ab22e42afff99f713dcf4127416e9a80659f5                     0.0s
+ => => exporting config sha256:ed8e826e4754768aa45886c9e0e9c6cd0d7ea2dc5293fa445b8d9a6671387fec                       0.0s
+ => => exporting attestation manifest sha256:35d78e9cf43a87d0b5c2b47cc35257dd68beedfdee499ee2a5e927fe15bd5ab4         0.0s
+ => => exporting manifest list sha256:7463c39ec3c16cb22f0e597540e8b90b788322e51a2be3f244921b87066b5120                0.0s
+ => => naming to docker.io/library/learning-platform-course-service:latest                                            0.0s
+ => => unpacking to docker.io/library/learning-platform-course-service:latest                                        17.2s
+ => [learning-frontend builder 3/5] COPY --from=deps /app/node_modules ./node_modules                                36.0s
+ => [learning-frontend builder 4/5] COPY . .                                                                          0.7s
+ => ERROR [learning-frontend builder 5/5] RUN npm run build --legacy-peer-deps                                       23.7s
+ => [course-service] resolving provenance for metadata file                                                           0.2s
+------
+ > [learning-frontend builder 5/5] RUN npm run build --legacy-peer-deps:
+5.060 
+5.060 > learning-frontend@0.1.0 build
+5.060 > next build
+5.060 
+9.322 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+9.322 This information is used to shape Next.js' roadmap and prioritize features.
+9.322 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+9.323 https://nextjs.org/telemetry
+9.323 
+9.546    ▲ Next.js 15.3.1
+9.546 
+9.574    Creating an optimized production build ...
+23.25 Failed to compile.
+23.25 
+23.25 src/app/layout.tsx
+23.25 An error occurred in `next/font`.
+23.25 
+23.25 Error: Cannot find module 'autoprefixer'
+23.25 Require stack:
+23.25 - /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+23.25 - /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+23.25 - /app/node_modules/next/dist/build/webpack/config/index.js
+23.25 - /app/node_modules/next/dist/build/webpack-config.js
+23.25 - /app/node_modules/next/dist/build/webpack-build/impl.js
+23.25 - /app/node_modules/next/dist/compiled/jest-worker/processChild.js
+23.25     at Function.<anonymous> (node:internal/modules/cjs/loader:1430:15)
+23.25     at /app/node_modules/next/dist/server/require-hook.js:55:36
+23.25     at Function.resolve (node:internal/modules/helpers:157:19)
+23.25     at loadPlugin (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:53:32)
+23.25     at /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:56
+23.25     at Array.map (<anonymous>)
+23.25     at getPostCssPlugins (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:47)
+23.25     at async /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js:125:36
+23.25     at async /app/node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js:94:33
+23.25     at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:157:20)
+23.25 
+23.26 
+23.26 > Build failed because of webpack errors
+23.33 npm notice
+23.33 npm notice New major version of npm available! 10.9.8 -> 11.14.1
+23.33 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.14.1
+23.33 npm notice To update run: npm install -g npm@11.14.1
+23.33 npm notice
+------
+Dockerfile:12
+
+--------------------
+
+  10 |     ARG NEXT_PUBLIC_API_BASE_URL=http://localhost/api
+
+  11 |     ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
+  12 | >>> RUN npm run build --legacy-peer-deps
+
+  13 |     
+
+  14 |     FROM node:22-alpine AS runner
+
+--------------------
+
+target learning-frontend: failed to solve: process "/bin/sh -c npm run build --legacy-peer-deps" did not complete successfully: exit code: 1
+
+
+
+View build details: docker-desktop://dashboard/build/default/default/pdntnnyz4jj6ldd523qo32205
+
+
+C:\Users\omelk\Desktop\academy-site\learning-platform>
