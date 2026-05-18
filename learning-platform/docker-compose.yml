@@ -43,6 +43,7 @@ services:
       MONGO_INITDB_DATABASE: users_db
     volumes:
       - mongo-data:/data/db
+      - ./mongodb/init-users.js:/docker-entrypoint-initdb.d/init-users.js:ro
     ports:
       - "27017:27017"
     networks:

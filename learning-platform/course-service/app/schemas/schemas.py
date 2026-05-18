@@ -23,6 +23,14 @@ class LessonOut(BaseModel):
     video_url: Optional[str] = None
 
 
+class LessonCreate(BaseModel):
+    title: str
+    content: Optional[str] = None
+    video_url: Optional[str] = None
+    duration: int = 0
+    is_preview: bool = False
+
+
 class CourseOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -48,10 +56,22 @@ class CourseDetail(CourseOut):
 class CourseCreate(BaseModel):
     title: str
     description: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     price: Decimal = Decimal("0.00")
     is_free: bool = True
     level: str = "beginner"
     category_id: Optional[int] = None
+
+
+class CourseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    price: Optional[Decimal] = None
+    is_free: Optional[bool] = None
+    level: Optional[str] = None
+    category_id: Optional[int] = None
+    is_published: Optional[bool] = None
 
 
 class EnrollmentOut(BaseModel):

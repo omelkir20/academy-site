@@ -1,6 +1,6 @@
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost/api";
 
-function getBaseUrl(service: "users" | "courses" | "analytics" | "ai-tutor") {
+function svc(service: "users" | "courses" | "analytics" | "ai-tutor") {
   return `${BASE}/${service}`;
 }
 
@@ -16,18 +16,52 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.detail || err.error || res.statusText);
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 export const authApi = {
   register: (data: { email: string; password: string; firstName: string; lastName: string; role?: string }) =>
-    request<{ token: string; user: User }>(`${getBaseUrl("users")}/v1/auth/register`, { method: "POST", body: JSON.stringify(data) }),
+    request<{ token: string; user: User }>(`${svc("users")}/v1/auth/register`, { method: "POST", body: JSON.stringify(data) }),
 
   login: (email: string, password: string) =>
-    request<{ token: string; user: User }>(`${getBaseUrl("users")}/v1/auth/login`, { method: "POST", body: JSON.stringify({ email, password }) }),
+    request<{ token: string; user: User }>(`${svc("users")}/v1/auth/login`, { method: "POST", body: JSON.stringify({ email, password }) }),
 
-  me: () => request<User>(`${getBaseUrl("users")}/v1/auth/me`),
+  me: () => request<User>(`${svc("users")}/v1/auth/me`),
+
+  updateProfile: (data: Partial<User>) =>
+    request<User>(`${svc("users")}/v1/users/profile`, { method: "PUT", body: JSON.stringify(data) }),
+};
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+export const adminApi = {
+  stats: () => request<AdminStats>(`${svc("users")}/v1/admin/stats`),
+
+  listUsers: (params?: { page?: number; limit?: number; search?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.page) q.set("page", String(params.page));
+    if (params?.limit) q.set("limit", String(params.limit));
+    if (params?.search) q.set("search", params.search);
+    return request<{ users: User[]; total: number; pages: number }>(`${svc("users")}/v1/admin/users?${q}`);
+  },
+
+  createUser: (data: { email: string; password: string; firstName: string; lastName: string; role: string }) =>
+    request<User>(`${svc("users")}/v1/admin/users`, { method: "POST", body: JSON.stringify(data) }),
+
+  updateUser: (id: string, data: Partial<User & { isActive: boolean }>) =>
+    request<User>(`${svc("users")}/v1/admin/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  deleteUser: (id: string) =>
+    request<{ message: string }>(`${svc("users")}/v1/admin/users/${id}`, { method: "DELETE" }),
+
+  listAllCourses: (params?: { search?: string; page?: number }) => {
+    const q = new URLSearchParams();
+    q.set("published_only", "false");
+    if (params?.search) q.set("search", params.search);
+    if (params?.page) q.set("page", String(params.page));
+    return request<Course[]>(`${svc("courses")}/v1/courses/?${q}`);
+  },
 };
 
 // ─── Courses ─────────────────────────────────────────────────────────────────
@@ -39,59 +73,83 @@ export const coursesApi = {
     if (params?.level) q.set("level", params.level);
     if (params?.is_free !== undefined) q.set("is_free", String(params.is_free));
     if (params?.page) q.set("page", String(params.page));
-    return request<Course[]>(`${getBaseUrl("courses")}/v1/courses/?${q}`);
+    return request<Course[]>(`${svc("courses")}/v1/courses/?${q}`);
   },
 
-  get: (id: number) => request<CourseDetail>(`${getBaseUrl("courses")}/v1/courses/${id}`),
+  listByInstructor: (instructorId: string) =>
+    request<Course[]>(`${svc("courses")}/v1/courses/?instructor_id=${instructorId}&published_only=false`),
+
+  get: (id: number) => request<CourseDetail>(`${svc("courses")}/v1/courses/${id}`),
+
+  create: (data: Partial<Course>) =>
+    request<Course>(`${svc("courses")}/v1/courses/`, { method: "POST", body: JSON.stringify(data) }),
+
+  update: (id: number, data: Partial<Course>) =>
+    request<Course>(`${svc("courses")}/v1/courses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  delete: (id: number) =>
+    request<void>(`${svc("courses")}/v1/courses/${id}`, { method: "DELETE" }),
+
+  togglePublish: (id: number) =>
+    request<Course>(`${svc("courses")}/v1/courses/${id}/publish`, { method: "PATCH" }),
+
+  addLesson: (courseId: number, data: Partial<Lesson>) =>
+    request<Lesson>(`${svc("courses")}/v1/courses/${courseId}/lessons`, { method: "POST", body: JSON.stringify(data) }),
+
+  deleteLesson: (courseId: number, lessonId: number) =>
+    request<void>(`${svc("courses")}/v1/courses/${courseId}/lessons/${lessonId}`, { method: "DELETE" }),
 
   enroll: (courseId: number) =>
-    request<Enrollment>(`${getBaseUrl("courses")}/v1/courses/${courseId}/enroll`, { method: "POST" }),
+    request<Enrollment>(`${svc("courses")}/v1/courses/${courseId}/enroll`, { method: "POST" }),
+
+  myEnrollments: () =>
+    request<Course[]>(`${svc("courses")}/v1/courses/user/enrollments`),
 
   updateProgress: (courseId: number, lessonId: number, completed: boolean) =>
-    request(`${getBaseUrl("courses")}/v1/courses/${courseId}/lessons/${lessonId}/progress`, {
+    request(`${svc("courses")}/v1/courses/${courseId}/lessons/${lessonId}/progress`, {
       method: "POST", body: JSON.stringify({ completed }),
     }),
 
   addReview: (courseId: number, rating: number, comment?: string) =>
-    request<Review>(`${getBaseUrl("courses")}/v1/courses/${courseId}/reviews`, {
+    request<Review>(`${svc("courses")}/v1/courses/${courseId}/reviews`, {
       method: "POST", body: JSON.stringify({ rating, comment }),
     }),
 
-  categories: () => request<Category[]>(`${getBaseUrl("courses")}/v1/categories/`),
+  categories: () => request<Category[]>(`${svc("courses")}/v1/categories/`),
 };
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
 export const analyticsApi = {
   trackPageView: (path: string, courseId?: number) =>
-    request(`${getBaseUrl("analytics")}/v1/analytics/track/pageview`, {
+    request(`${svc("analytics")}/v1/analytics/track/pageview`, {
       method: "POST", body: JSON.stringify({ path, course_id: courseId }),
     }).catch(() => null),
 
   trackEvent: (eventType: string, payload?: Record<string, unknown>) =>
-    request(`${getBaseUrl("analytics")}/v1/analytics/track/event`, {
+    request(`${svc("analytics")}/v1/analytics/track/event`, {
       method: "POST", body: JSON.stringify({ event_type: eventType, payload }),
     }).catch(() => null),
 
   submitFeedback: (data: { course_id?: number; lesson_id?: number; content: string }) =>
-    request(`${getBaseUrl("analytics")}/v1/analytics/feedback`, { method: "POST", body: JSON.stringify(data) }),
+    request(`${svc("analytics")}/v1/analytics/feedback`, { method: "POST", body: JSON.stringify(data) }),
 
-  dashboard: () => request<DashboardStats>(`${getBaseUrl("analytics")}/v1/analytics/dashboard`),
+  dashboard: () => request<DashboardStats>(`${svc("analytics")}/v1/analytics/dashboard`),
 };
 
 // ─── AI Tutor ────────────────────────────────────────────────────────────────
 export const aiTutorApi = {
   ask: (courseId: number, question: string, lessonId?: number) =>
-    request<{ answer: string; course_id: number }>(`${getBaseUrl("ai-tutor")}/v1/ai-tutor/ask`, {
+    request<{ answer: string; course_id: number }>(`${svc("ai-tutor")}/v1/ai-tutor/ask`, {
       method: "POST", body: JSON.stringify({ course_id: courseId, lesson_id: lessonId, question }),
     }),
 
   generateQuiz: (courseId: number, numQuestions = 3) =>
-    request<{ course_id: number; questions: QuizQuestion[] }>(`${getBaseUrl("ai-tutor")}/v1/ai-tutor/quiz`, {
+    request<{ course_id: number; questions: QuizQuestion[] }>(`${svc("ai-tutor")}/v1/ai-tutor/quiz`, {
       method: "POST", body: JSON.stringify({ course_id: courseId, num_questions: numQuestions }),
     }),
 
   recommend: (userId: string, currentCourseId?: number) =>
-    request<{ recommendations: string[]; reason: string }>(`${getBaseUrl("ai-tutor")}/v1/ai-tutor/recommend`, {
+    request<{ recommendations: string[]; reason: string }>(`${svc("ai-tutor")}/v1/ai-tutor/recommend`, {
       method: "POST", body: JSON.stringify({ user_id: userId, current_course_id: currentCourseId }),
     }),
 };
@@ -106,6 +164,17 @@ export interface User {
   role: "student" | "instructor" | "admin";
   avatar?: string;
   bio?: string;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface AdminStats {
+  total: number;
+  students: number;
+  instructors: number;
+  admins: number;
+  active: number;
+  inactive: number;
 }
 
 export interface Category {

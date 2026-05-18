@@ -26,5 +26,20 @@ export function useAuth() {
     setUser(null);
   }
 
-  return { user, loading, login, logout, isAuthenticated: !!user };
+  function updateUser(userData: User) {
+    localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
+  }
+
+  return {
+    user,
+    loading,
+    login,
+    logout,
+    updateUser,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === "admin",
+    isInstructor: user?.role === "instructor",
+    isStudent: user?.role === "student",
+  };
 }
