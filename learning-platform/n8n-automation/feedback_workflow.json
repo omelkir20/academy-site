@@ -1,0 +1,102 @@
+{
+  "name": "Feedback Processing Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-feedback",
+      "name": "Webhook - Nouveau Feedback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://analytics-service:8002/api/v1/analytics/feedback",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "user_id",   "value": "={{ $json.user_id }}" },
+            { "name": "course_id", "value": "={{ $json.course_id }}" },
+            { "name": "lesson_id", "value": "={{ $json.lesson_id }}" },
+            { "name": "content",   "value": "={{ $json.content }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "store-feedback",
+      "name": "Stocker le Feedback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://ai-tutor-service:8003/api/v1/ai-tutor/ask",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "course_id", "value": "={{ $json.course_id || 1 }}" },
+            { "name": "question",  "value": "Analyse ce feedback d'apprenant et fournis un résumé court avec le sentiment (positif/négatif/neutre) et 1-2 points d'amélioration. Feedback : {{ $json.content }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-analysis",
+      "name": "Analyse IA du Feedback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://analytics-service:8002/api/v1/analytics/track/event",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "event_type", "value": "feedback_processed" },
+            { "name": "payload",    "value": "={{ { feedback_id: $('store-feedback').item.json.id, ai_summary: $json.answer, user_id: $('Webhook - Nouveau Feedback').item.json.user_id } }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "track-event",
+      "name": "Enregistrer Événement Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "message": "=Nouveau feedback traité !\nUtilisateur : {{ $('Webhook - Nouveau Feedback').item.json.user_id }}\nCours : {{ $('Webhook - Nouveau Feedback').item.json.course_id }}\nRésumé IA : {{ $('Analyse IA du Feedback').item.json.answer }}",
+        "additionalFields": {}
+      },
+      "id": "log-notification",
+      "name": "Log Notification",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Nouveau Feedback": {
+      "main": [[{ "node": "Stocker le Feedback", "type": "main", "index": 0 }]]
+    },
+    "Stocker le Feedback": {
+      "main": [[{ "node": "Analyse IA du Feedback", "type": "main", "index": 0 }]]
+    },
+    "Analyse IA du Feedback": {
+      "main": [[{ "node": "Enregistrer Événement Analytics", "type": "main", "index": 0 }]]
+    },
+    "Enregistrer Événement Analytics": {
+      "main": [[{ "node": "Log Notification", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" },
+  "tags": ["feedback", "automation"]
+}
