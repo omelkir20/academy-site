@@ -21,11 +21,16 @@ export default function NewCoursePage() {
     setError(""); setLoading(true);
     try {
       const course = await coursesApi.create({
-        title: form.title, description: form.description,
-        level: form.level, price: parseFloat(form.price) || 0,
-        is_free: form.is_free, thumbnail_url: form.thumbnail_url || undefined,
-        category_id: form.category_id ? (parseInt(form.category_id) as unknown as undefined) : undefined,
-      });
+  title: form.title,
+  description: form.description,
+  level: form.level,
+  price: parseFloat(form.price) || 0,
+  is_free: form.is_free,
+  thumbnail_url: form.thumbnail_url || undefined,
+  category: form.category_id
+    ? categories.find((c) => c.id === parseInt(form.category_id))
+    : undefined,
+});
       router.push(`/instructor/courses/${course.id}/edit`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erreur lors de la création");

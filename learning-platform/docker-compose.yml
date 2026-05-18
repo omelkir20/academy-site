@@ -28,7 +28,7 @@ services:
     networks:
       - learning-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-learning}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-learning} -d ${POSTGRES_DB:-learning_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -124,7 +124,8 @@ services:
     container_name: learning-course-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-learning}:${POSTGRES_PASSWORD:-learning_secret}@postgres:5432/${POSTGRES_DB:-learning_db}
+      # FIX: asyncpg requires the postgresql+asyncpg:// scheme
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-learning}:${POSTGRES_PASSWORD:-learning_secret}@postgres:5432/${POSTGRES_DB:-learning_db}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secret}@redis:6379
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
@@ -148,7 +149,8 @@ services:
     container_name: learning-analytics-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-learning}:${POSTGRES_PASSWORD:-learning_secret}@postgres:5432/${POSTGRES_DB:-learning_db}
+      # FIX: asyncpg requires the postgresql+asyncpg:// scheme
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-learning}:${POSTGRES_PASSWORD:-learning_secret}@postgres:5432/${POSTGRES_DB:-learning_db}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secret}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-supersecretjwtkey_change_in_production}
     ports:
