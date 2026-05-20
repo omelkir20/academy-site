@@ -20,8 +20,8 @@ export function Sidebar({ items, title, subtitle }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-gray-100 bg-white min-h-[calc(100vh-4rem)]">
-      <div className="p-6 border-b border-gray-100">
+    <aside className="w-64 flex-shrink-0 border-r bg-white min-h-[calc(100vh-4rem)]">
+      <div className="p-6 border-b">
         <h2 className="font-bold text-gray-900">{title}</h2>
         {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
       </div>
@@ -33,13 +33,13 @@ export function Sidebar({ items, title, subtitle }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium mb-1 transition-all duration-200",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium mb-1 transition-colors",
                 active
-                  ? "bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100"
+                  ? "bg-blue-50 text-blue-700"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
-              <item.icon className={cn("h-4 w-4", active ? "text-emerald-600" : "text-gray-400")} />
+              <item.icon className={cn("h-4 w-4", active ? "text-blue-600" : "text-gray-400")} />
               {item.label}
             </Link>
           );

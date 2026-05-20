@@ -62,21 +62,6 @@ export const adminApi = {
     if (params?.page) q.set("page", String(params.page));
     return request<Course[]>(`${svc("courses")}/v1/courses/?${q}`);
   },
-
-  getAnalytics: () =>
-    request<DashboardStats>(`${svc("analytics")}/v1/analytics/dashboard`).then((d) => ({
-      pageViews: d.total_views,
-      uniqueVisitors: d.total_events,
-      topCourses: d.enrollments_by_course.map((e) => ({
-        course_id: Number(e.course_id),
-        title: `Course ${e.course_id}`,
-        views: 0,
-        enrollments: e.count,
-      })),
-      enrollmentsByDay: d.views_last_7_days.map((v) => ({ date: v.day, count: v.count })),
-      revenueByMonth: [] as { month: string; amount: number }[],
-      userGrowth: [] as { month: string; count: number }[],
-    })),
 };
 
 // ─── Courses ─────────────────────────────────────────────────────────────────
@@ -131,30 +116,6 @@ export const coursesApi = {
     }),
 
   categories: () => request<Category[]>(`${svc("courses")}/v1/categories/`),
-};
-
-// ─── Instructor ───────────────────────────────────────────────────────────────
-export const instructorApi = {
-  getMyCourses: () =>
-    request<Course[]>(`${svc("courses")}/v1/courses/?published_only=false`),
-
-  getCourse: (id: number) =>
-    request<CourseDetail>(`${svc("courses")}/v1/courses/${id}`),
-
-  createCourse: (data: Partial<Course>) =>
-    request<Course>(`${svc("courses")}/v1/courses/`, { method: "POST", body: JSON.stringify(data) }),
-
-  updateCourse: (id: number, data: Partial<Course>) =>
-    request<Course>(`${svc("courses")}/v1/courses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-
-  deleteCourse: (id: number) =>
-    request<void>(`${svc("courses")}/v1/courses/${id}`, { method: "DELETE" }),
-
-  addLesson: (courseId: number, data: Partial<Lesson>) =>
-    request<Lesson>(`${svc("courses")}/v1/courses/${courseId}/lessons`, { method: "POST", body: JSON.stringify(data) }),
-
-  deleteLesson: (courseId: number, lessonId: number) =>
-    request<void>(`${svc("courses")}/v1/courses/${courseId}/lessons/${lessonId}`, { method: "DELETE" }),
 };
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
@@ -246,9 +207,6 @@ export interface Course {
   is_published: boolean;
   created_at: string;
   category?: Category;
-  category_id?: number;
-  enrollment_count?: number;
-  avg_rating?: number;
 }
 
 export interface CourseDetail extends Course {

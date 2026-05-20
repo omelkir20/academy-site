@@ -1,135 +1,215 @@
 "use client";
-import { useEffect, useState } from "react";
-import { BookOpen, Plus, Trash2, Eye, Search, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Search, Plus, Pencil, Trash2, Eye, EyeOff, Loader2, BookOpen } from "lucide-react";
 import { adminApi, coursesApi, type Course } from "@/lib/api";
+import { Modal } from "@/components/ui/Modal";
+import { Badge } from "@/components/ui/Badge";
 import { formatPrice, levelLabel } from "@/lib/utils";
 import Link from "next/link";
 
-const LEVEL_COLORS: Record<string, string> = {
-  beginner:     "bg-emerald-100 text-emerald-700",
-  intermediate: "bg-amber-100 text-amber-700",
-  advanced:     "bg-rose-100 text-rose-700",
-};
+const EMPTY_FORM = { title: "", description: "", level: "beginner", price: "0", is_free: true, category_id: "" };
 
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState<"create" | "edit" | null>(null);
+  const [selected, setSelected] = useState<Course | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    adminApi.listAllCourses().then(setCourses).catch(() => null).finally(() => setLoading(false));
-  }, []);
+  const load = useCallback(() => {
+    setLoading(true);
+    adminApi.listAllCourses({ search: search || undefined })
+      .then(setCourses)
+      .catch(() => null)
+      .finally(() => setLoading(false));
+  }, [search]);
 
-  async function handleDelete(id: number) {
-    if (!confirm("Supprimer ce cours définitivement ?")) return;
-    setDeleting(id);
-    try {
-      await coursesApi.delete(id);
-      setCourses((prev) => prev.filter((c) => c.id !== id));
-    } catch { /* silent */ }
-    finally { setDeleting(null); }
+  useEffect(() => { load(); }, [load]);
+
+  function openCreate() {
+    setSelected(null);
+    setForm(EMPTY_FORM);
+    setError("");
+    setModal("create");
   }
 
-  const filtered = courses.filter((c) =>
-    c.title.toLowerCase().includes(search.toLowerCase())
-  );
+  function openEdit(c: Course) {
+    setSelected(c);
+    setForm({
+      title: c.title, description: c.description || "",
+      level: c.level, price: String(c.price),
+      is_free: c.is_free, category_id: String(c.category?.id || ""),
+    });
+    setError("");
+    setModal("edit");
+  }
+
+  async function handleSave() {
+    setError(""); setSaving(true);
+    try {
+      const data = {
+        title: form.title, description: form.description,
+        level: form.level, price: parseFloat(form.price) || 0,
+        is_free: form.is_free,
+        category_id: form.category_id ? parseInt(form.category_id) : undefined,
+      };
+      if (modal === "create") await coursesApi.create(data);
+      else if (selected) await coursesApi.update(selected.id, data);
+      setModal(null);
+      load();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleTogglePublish(c: Course) {
+    await coursesApi.togglePublish(c.id).catch(() => null);
+    load();
+  }
+
+  async function handleDelete(c: Course) {
+    if (!confirm(`Supprimer définitivement "${c.title}" ?`)) return;
+    await coursesApi.delete(c.id).catch(() => null);
+    load();
+  }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-8">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Gestion des cours</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion des cours</h1>
           <p className="text-sm text-gray-500 mt-0.5">{courses.length} cours au total</p>
         </div>
-        <Link href="/admin/courses/new"
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-sm font-bold text-white hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md shadow-emerald-200"
-        >
+        <button onClick={openCreate}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
           <Plus className="h-4 w-4" /> Nouveau cours
-        </Link>
+        </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-50">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un cours…"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
-            />
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input type="text" placeholder="Rechercher un cours..."
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              {["Cours", "Niveau", "Prix", "Statut", "Instructeur", "Actions"].map((h) => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {loading ? (
+              <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="h-6 w-6 animate-spin text-blue-400 mx-auto" /></td></tr>
+            ) : courses.length === 0 ? (
+              <tr><td colSpan={6} className="py-12 text-center text-gray-400">Aucun cours trouvé</td></tr>
+            ) : courses.map((c) => (
+              <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 flex-shrink-0">
+                      <BookOpen className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <Link href={`/courses/${c.id}`} className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1">
+                        {c.title}
+                      </Link>
+                      <p className="text-xs text-gray-400">{c.category?.name || "Sans catégorie"}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3"><Badge variant="default">{levelLabel(c.level)}</Badge></td>
+                <td className="px-4 py-3 font-medium">{formatPrice(Number(c.price), c.is_free)}</td>
+                <td className="px-4 py-3">
+                  <Badge variant={c.is_published ? "success" : "warning"}>
+                    {c.is_published ? "Publié" : "Brouillon"}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3 text-gray-500 text-xs font-mono">{c.instructor_id.slice(-8)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openEdit(c)} title="Modifier"
+                      className="rounded-lg p-1.5 hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => handleTogglePublish(c)} title={c.is_published ? "Dépublier" : "Publier"}
+                      className="rounded-lg p-1.5 hover:bg-yellow-50 text-gray-400 hover:text-yellow-600 transition-colors">
+                      {c.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                    <button onClick={() => handleDelete(c)} title="Supprimer"
+                      className="rounded-lg p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Modal open={modal !== null} onClose={() => setModal(null)}
+        title={modal === "create" ? "Créer un cours" : "Modifier le cours"}>
+        <div className="space-y-4">
+          {error && <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700">Titre</label>
+            <input type="text" value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700">Description</label>
+            <textarea rows={3} value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Niveau</label>
+              <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="beginner">Débutant</option>
+                <option value="intermediate">Intermédiaire</option>
+                <option value="advanced">Avancé</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Prix (€)</label>
+              <input type="number" min="0" step="0.01" value={form.price}
+                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value, is_free: parseFloat(e.target.value) === 0 }))}
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={form.is_free}
+              onChange={(e) => setForm((f) => ({ ...f, is_free: e.target.checked, price: e.target.checked ? "0" : f.price }))}
+              className="rounded" />
+            Cours gratuit
+          </label>
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setModal(null)}
+              className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button onClick={handleSave} disabled={saving}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {modal === "create" ? "Créer" : "Enregistrer"}
+            </button>
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="py-16 text-center">
-            <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-200" />
-            <p className="text-gray-500">Aucun cours trouvé</p>
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50/80">
-              <tr>
-                {["Cours", "Niveau", "Prix", "Inscriptions", "Statut", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <BookOpen className="h-4 w-4 text-white/80" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 line-clamp-1 max-w-[200px]">{c.title}</p>
-                        <p className="text-xs text-gray-400">{c.category?.name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${LEVEL_COLORS[c.level] ?? "bg-gray-100 text-gray-600"}`}>
-                      {levelLabel(c.level)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`font-semibold text-sm ${c.is_free ? "text-emerald-600" : "text-gray-900"}`}>
-                      {formatPrice(Number(c.price), c.is_free)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600 font-medium">{c.enrollment_count ?? 0}</td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${c.is_published ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}>
-                      {c.is_published ? <><CheckCircle className="h-3 w-3" /> Publié</> : <><XCircle className="h-3 w-3" /> Brouillon</>}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <Link href={`/courses/${c.id}`}
-                        className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                        title="Voir"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </Link>
-                      <button onClick={() => handleDelete(c.id)} disabled={deleting === c.id}
-                        className="rounded-xl border border-gray-200 p-2 text-gray-500 hover:border-red-300 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-40"
-                        title="Supprimer"
-                      >
-                        {deleting === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      </Modal>
     </div>
   );
 }
