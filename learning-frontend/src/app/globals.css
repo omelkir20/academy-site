@@ -1,0 +1,107 @@
+@tailwind base;
+
+:root {
+  --font-inter: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --primary: 158 64% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 158 64% 96%;
+    --accent-foreground: 158 64% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 158 64% 40%;
+    --radius: 0.875rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::selection {
+    background: hsl(158 64% 40% / 0.18);
+    color: hsl(158 64% 20%);
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-emerald-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-emerald-400; }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .animate-float {
+    animation: float 7s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: float 11s ease-in-out infinite;
+  }
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-400;
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-emerald-100/60;
+  }
+  .glass {
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.45);
+  }
+  .pattern-mesh {
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(16,185,129,0.13) 0%, transparent 55%),
+      radial-gradient(circle at 80% 80%, rgba(124,58,237,0.13) 0%, transparent 55%);
+  }
+  .pattern-grid {
+    background-image: linear-gradient(rgba(16,185,129,0.07) 1px, transparent 1px),
+                      linear-gradient(to right, rgba(16,185,129,0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .pattern-dots {
+    background-image: radial-gradient(circle, rgba(16,185,129,0.2) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .glow-emerald {
+    box-shadow: 0 0 40px -10px rgba(16,185,129,0.35), 0 0 80px -30px rgba(16,185,129,0.15);
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
